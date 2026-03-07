@@ -6,12 +6,12 @@ import SizeChip from "./SizeChip";
 import { getStaleness, getBlockedBy } from "@/lib/staleness";
 import { formatWait, getMoodColor, getCardBg, getAnimClass } from "@/lib/formatters";
 
-const LINEAR_WORKSPACE = process.env.NEXT_PUBLIC_LINEAR_WORKSPACE;
+const LINEAR_SLUG = process.env.NEXT_PUBLIC_LINEAR_SLUG;
 const LINEAR_RE = /\bLL-\d+\b/g;
 
 function linearUrl(issueId) {
-  return LINEAR_WORKSPACE
-    ? `https://linear.app/${LINEAR_WORKSPACE}/issue/${issueId}`
+  return LINEAR_SLUG
+    ? `https://linear.app/${LINEAR_SLUG}/issue/${issueId}`
     : `https://linear.app/issue/${issueId}`;
 }
 
