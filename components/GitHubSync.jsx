@@ -16,7 +16,7 @@ const inputStyle = {
   outline: "none",
 };
 
-export default function GitHubSync({ onConnect, onDisconnect, syncState, syncError, lastSynced }) {
+export default function GitHubSync({ onConnect, onDisconnect, onRefresh, syncState, syncError, lastSynced, serverConfigured }) {
   const [showPanel, setShowPanel] = useState(false);
   const [owner, setOwner] = useState("");
   const [repo, setRepo] = useState("");
@@ -24,8 +24,9 @@ export default function GitHubSync({ onConnect, onDisconnect, syncState, syncErr
   const [isConnected, setIsConnected] = useState(false);
   const panelRef = useRef(null);
 
-  // Load saved config on mount and auto-connect
+  // Load saved config on mount and auto-connect (only when not server-configured)
   useEffect(() => {
+    if (serverConfigured) return;
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       try {
@@ -70,6 +71,7 @@ export default function GitHubSync({ onConnect, onDisconnect, syncState, syncErr
     setShowPanel(false);
   };
 
+  const connected = serverConfigured || isConnected;
   const statusColor =
     syncState === "loading" ? "#facc15"
     : syncState === "error" ? "#f87171"
@@ -79,20 +81,25 @@ export default function GitHubSync({ onConnect, onDisconnect, syncState, syncErr
   const statusIcon =
     syncState === "loading" ? "⟳"
     : syncState === "error" ? "✗"
-    : isConnected ? "✓"
+    : connected ? "✓"
     : "⚙";
+
+  const label = serverConfigured
+    ? `${process.env.NEXT_PUBLIC_GITHUB_OWNER}/${process.env.NEXT_PUBLIC_GITHUB_REPO}`
+    : isConnected ? `${owner}/${repo}`
+    : "CONNECT GITHUB";
 
   return (
     <div style={{ position: "relative" }} ref={panelRef}>
       <button
         onClick={() => setShowPanel((v) => !v)}
-        title={syncError || (isConnected ? `${owner}/${repo}` : "Connect GitHub")}
+        title={syncError || label}
         style={{
           display: "flex",
           alignItems: "center",
           gap: 5,
-          background: isConnected ? `${statusColor}14` : "#0f172a",
-          border: `1px solid ${isConnected ? statusColor + "44" : "#1e293b"}`,
+          background: connected ? `${statusColor}14` : "#0f172a",
+          border: `1px solid ${connected ? statusColor + "44" : "#1e293b"}`,
           borderRadius: 5,
           padding: "4px 8px",
           cursor: "pointer",
@@ -103,7 +110,7 @@ export default function GitHubSync({ onConnect, onDisconnect, syncState, syncErr
         }}
       >
         <span style={{ fontSize: 11 }}>{statusIcon}</span>
-        {isConnected ? `${owner}/${repo}` : "CONNECT GITHUB"}
+        {label}
       </button>
 
       {showPanel && (
@@ -131,76 +138,67 @@ export default function GitHubSync({ onConnect, onDisconnect, syncState, syncErr
             </div>
           )}
 
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <input
-              placeholder="owner"
-              value={owner}
-              onChange={(e) => setOwner(e.target.value)}
-              style={inputStyle}
-            />
-            <input
-              placeholder="repo"
-              value={repo}
-              onChange={(e) => setRepo(e.target.value)}
-              style={inputStyle}
-            />
-            <input
-              type="password"
-              placeholder="GitHub PAT (repo scope)"
-              value={pat}
-              onChange={(e) => setPat(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleConnect()}
-              style={inputStyle}
-            />
-            <div style={{ fontSize: 7, color: "#1e293b", fontFamily: "'DM Mono', monospace", lineHeight: 1.5 }}>
-              Needs <code style={{ color: "#334155" }}>repo</code> scope. Stored in localStorage only.
-            </div>
-          </div>
-
-          <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-            <button
-              onClick={handleConnect}
-              disabled={!owner || !repo || !pat || syncState === "loading"}
-              style={{
-                flex: 1,
-                background: "#4ade8022",
-                border: "1px solid #4ade8044",
-                borderRadius: 5,
-                padding: "6px 0",
-                color: "#4ade80",
-                fontFamily: "'DM Mono', monospace",
-                fontSize: 9,
-                letterSpacing: "0.1em",
-                cursor: "pointer",
-                opacity: (!owner || !repo || !pat) ? 0.5 : 1,
-              }}
-            >
-              {syncState === "loading" ? "⟳ SYNCING..." : "↓ SYNC"}
-            </button>
-
-            {isConnected && (
+          {/* Server-configured: just show refresh, no PAT form */}
+          {serverConfigured ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <div style={{ fontSize: 8, color: "#334155", fontFamily: "'DM Mono', monospace", lineHeight: 1.6 }}>
+                Repo configured via environment variables.
+              </div>
               <button
-                onClick={handleDisconnect}
-                style={{
-                  background: "#f8717114",
-                  border: "1px solid #f8717133",
-                  borderRadius: 5,
-                  padding: "6px 10px",
-                  color: "#f87171",
-                  fontFamily: "'DM Mono', monospace",
-                  fontSize: 9,
-                  cursor: "pointer",
-                }}
+                onClick={() => { onRefresh(); setShowPanel(false); }}
+                disabled={syncState === "loading"}
+                style={{ background: "#4ade8022", border: "1px solid #4ade8044", borderRadius: 5, padding: "6px 0", color: "#4ade80", fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: "0.1em", cursor: "pointer" }}
               >
-                ✕
+                {syncState === "loading" ? "⟳ SYNCING..." : "↓ REFRESH"}
               </button>
-            )}
-          </div>
-
-          {lastSynced && (
-            <div style={{ marginTop: 8, fontSize: 7, color: "#334155", fontFamily: "'DM Mono', monospace", textAlign: "center" }}>
-              last synced {lastSynced.toLocaleTimeString()}
+              {lastSynced && (
+                <div style={{ fontSize: 7, color: "#334155", fontFamily: "'DM Mono', monospace", textAlign: "center" }}>
+                  last synced {lastSynced.toLocaleTimeString()}
+                </div>
+              )}
             </div>
+          ) : (
+            <>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <input placeholder="owner" value={owner} onChange={(e) => setOwner(e.target.value)} style={inputStyle} />
+                <input placeholder="repo" value={repo} onChange={(e) => setRepo(e.target.value)} style={inputStyle} />
+                <input
+                  type="password"
+                  placeholder="GitHub PAT (repo scope)"
+                  value={pat}
+                  onChange={(e) => setPat(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleConnect()}
+                  style={inputStyle}
+                />
+                <div style={{ fontSize: 7, color: "#1e293b", fontFamily: "'DM Mono', monospace", lineHeight: 1.5 }}>
+                  Needs <code style={{ color: "#334155" }}>repo</code> scope. Stored in localStorage only.
+                </div>
+              </div>
+
+              <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+                <button
+                  onClick={handleConnect}
+                  disabled={!owner || !repo || !pat || syncState === "loading"}
+                  style={{ flex: 1, background: "#4ade8022", border: "1px solid #4ade8044", borderRadius: 5, padding: "6px 0", color: "#4ade80", fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: "0.1em", cursor: "pointer", opacity: (!owner || !repo || !pat) ? 0.5 : 1 }}
+                >
+                  {syncState === "loading" ? "⟳ SYNCING..." : "↓ SYNC"}
+                </button>
+                {isConnected && (
+                  <button
+                    onClick={handleDisconnect}
+                    style={{ background: "#f8717114", border: "1px solid #f8717133", borderRadius: 5, padding: "6px 10px", color: "#f87171", fontFamily: "'DM Mono', monospace", fontSize: 9, cursor: "pointer" }}
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+
+              {lastSynced && (
+                <div style={{ marginTop: 8, fontSize: 7, color: "#334155", fontFamily: "'DM Mono', monospace", textAlign: "center" }}>
+                  last synced {lastSynced.toLocaleTimeString()}
+                </div>
+              )}
+            </>
           )}
         </div>
       )}

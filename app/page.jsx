@@ -1,6 +1,9 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
+
+const SERVER_OWNER = process.env.NEXT_PUBLIC_GITHUB_OWNER;
+const SERVER_REPO = process.env.NEXT_PUBLIC_GITHUB_REPO;
 import { MOCK_PRS } from "@/lib/mockData";
 import { getStaleness, getAllPeople, computeKarma } from "@/lib/staleness";
 import PRCard from "@/components/PRCard";
@@ -27,13 +30,16 @@ export default function Page() {
   const [syncError, setSyncError] = useState(null);
   const [lastSynced, setLastSynced] = useState(null);
 
-  const fetchPRs = useCallback(async (config) => {
+  const fetchPRs = useCallback(async (config = {}) => {
     setSyncState("loading");
     setSyncError(null);
     try {
+      const owner = config.owner || SERVER_OWNER;
+      const repo = config.repo || SERVER_REPO;
+      const headers = config.pat ? { Authorization: `Bearer ${config.pat}` } : {};
       const res = await fetch(
-        `/api/github/prs?owner=${encodeURIComponent(config.owner)}&repo=${encodeURIComponent(config.repo)}`,
-        { headers: { Authorization: `Bearer ${config.pat}` } },
+        `/api/github/prs?owner=${encodeURIComponent(owner)}&repo=${encodeURIComponent(repo)}`,
+        { headers },
       );
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to fetch PRs");
@@ -48,6 +54,13 @@ export default function Page() {
   }, []);
 
   const handleConnect = useCallback((config) => fetchPRs(config), [fetchPRs]);
+
+  // Auto-fetch on load when env vars are pre-configured server-side
+  useEffect(() => {
+    if (SERVER_OWNER && SERVER_REPO && !localStorage.getItem("review-karma-github-config")) {
+      fetchPRs();
+    }
+  }, [fetchPRs]);
 
   const handleDisconnect = useCallback(() => {
     setPrs(MOCK_PRS);
@@ -138,9 +151,11 @@ export default function Page() {
             <GitHubSync
               onConnect={handleConnect}
               onDisconnect={handleDisconnect}
+              onRefresh={() => fetchPRs()}
               syncState={syncState}
               syncError={syncError}
               lastSynced={lastSynced}
+              serverConfigured={!!(SERVER_OWNER && SERVER_REPO)}
             />
             <LiveClock />
           </div>
