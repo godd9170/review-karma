@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { MOCK_PRS } from "@/lib/mockData";
 import { getStaleness, getAllPeople, computeKarma } from "@/lib/staleness";
 import PRCard from "@/components/PRCard";
 import KarmaFilterPanel from "@/components/KarmaFilterPanel";
 import StatusChips from "@/components/StatusChips";
 import GitHubSync from "@/components/GitHubSync";
+import LoadingScreen from "@/components/LoadingScreen";
 
 function LiveClock() {
   const now = new Date();
@@ -18,8 +18,7 @@ function LiveClock() {
 }
 
 export default function Page() {
-  const [prs, setPrs] = useState(MOCK_PRS);
-  const [usingMockData, setUsingMockData] = useState(true);
+  const [prs, setPrs] = useState(null);
   const [authorFilters, setAuthorFilters] = useState(new Set());
   const [reviewerFilters, setReviewerFilters] = useState(new Set());
   const [statusFilter, setStatusFilter] = useState(null);
@@ -35,7 +34,6 @@ export default function Page() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to fetch PRs");
       setPrs(data);
-      setUsingMockData(false);
       setSyncState("success");
       setLastSynced(new Date());
     } catch (err) {
@@ -53,6 +51,10 @@ export default function Page() {
       return next;
     });
   };
+
+  if (prs === null) {
+    return <LoadingScreen error={syncError} onRetry={fetchPRs} />;
+  }
 
   const allPeople = getAllPeople(prs);
   const karma = computeKarma(allPeople, prs).sort((a, b) => b.blocking - a.blocking);
@@ -107,11 +109,6 @@ export default function Page() {
             REVIEW KARMA
           </h1>
           <span style={{ fontSize: 10, color: "#334155", letterSpacing: "0.2em" }}>◆ PR QUEUE ◆</span>
-          {usingMockData && (
-            <span style={{ fontSize: 8, color: "#334155", letterSpacing: "0.1em", border: "1px solid #1e293b", borderRadius: 4, padding: "2px 6px", fontFamily: "'DM Mono', monospace" }}>
-              DEMO DATA
-            </span>
-          )}
 
           <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 12 }}>
             <GitHubSync
