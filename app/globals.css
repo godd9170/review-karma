@@ -1,0 +1,29 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500;700&family=Silkscreen:wght@400;700&display=swap');
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+.bounce-happy  { animation: bounceHappy 1.6s ease-in-out infinite; }
+.wobble-mild   { animation: wobbleMild 2.2s ease-in-out infinite; }
+.pulse-yellow  { animation: pulseYellow 1.8s ease-in-out infinite; }
+.shake-anxious { animation: shakeAnxious 0.9s ease-in-out infinite; }
+.rage-shake    { animation: rageShake 0.4s ease-in-out infinite; }
+
+@keyframes bounceHappy  { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-3px)} }
+@keyframes wobbleMild   { 0%,100%{transform:rotate(0)} 25%{transform:rotate(.5deg)} 75%{transform:rotate(-.5deg)} }
+@keyframes pulseYellow  { 0%,100%{transform:scale(1)} 50%{transform:scale(1.01)} }
+@keyframes shakeAnxious { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-2px) rotate(-.5deg)} 75%{transform:translateX(2px) rotate(.5deg)} }
+@keyframes rageShake    { 0%,100%{transform:translateX(0) rotate(0)} 20%{transform:translateX(-3px) rotate(-1deg)} 40%{transform:translateX(3px) rotate(1deg)} 60%{transform:translateX(-2px) rotate(-.5deg)} 80%{transform:translateX(2px) rotate(.5deg)} }
+@keyframes glowGreen    { 0%,100%{box-shadow:0 0 4px #4ade8044} 50%{box-shadow:0 0 12px #4ade8088} }
+@keyframes scanTick     { from{opacity:.7} to{opacity:1} }
+@keyframes fadeIn       { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:translateY(0)} }
+
+.pr-card { transition: all 0.2s ease; cursor: default; }
+.pr-card:hover { transform: translateY(-1px); }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 14px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
