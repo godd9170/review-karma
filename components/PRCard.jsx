@@ -6,6 +6,38 @@ import SizeChip from "./SizeChip";
 import { getStaleness, getBlockedBy } from "@/lib/staleness";
 import { formatWait, getMoodColor, getCardBg, getAnimClass } from "@/lib/formatters";
 
+const LINEAR_WORKSPACE = process.env.NEXT_PUBLIC_LINEAR_WORKSPACE;
+const LINEAR_RE = /\bLL-\d+\b/g;
+
+function linearUrl(issueId) {
+  return LINEAR_WORKSPACE
+    ? `https://linear.app/${LINEAR_WORKSPACE}/issue/${issueId}`
+    : `https://linear.app/issue/${issueId}`;
+}
+
+function TitleWithLinear({ title }) {
+  const parts = [];
+  let last = 0;
+  for (const m of title.matchAll(LINEAR_RE)) {
+    if (m.index > last) parts.push(title.slice(last, m.index));
+    parts.push(
+      <a
+        key={m.index}
+        href={linearUrl(m[0])}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={(e) => e.stopPropagation()}
+        style={{ color: "#818cf8", textDecoration: "none", borderBottom: "1px solid #818cf855" }}
+      >
+        {m[0]}
+      </a>
+    );
+    last = m.index + m[0].length;
+  }
+  if (last < title.length) parts.push(title.slice(last));
+  return <>{parts}</>;
+}
+
 function getStatusInfo(pr) {
   if (pr.reviewers.every((r) => r.status === "approved")) {
     return { text: "approved", emoji: "✅", color: "#4ade80", bg: "#4ade8014", border: "#4ade8033" };
@@ -50,7 +82,7 @@ export default function PRCard({ pr, index }) {
         WebkitBoxOrient: "vertical",
       }}
     >
-      {pr.title}
+      <TitleWithLinear title={pr.title} />
     </div>
   );
 

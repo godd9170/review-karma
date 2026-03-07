@@ -42,15 +42,17 @@ export async function GET(request) {
 
   const ghPRs = await prsRes.json();
 
-  // Fetch reviews for each PR in parallel
+  // Fetch full PR detail (includes additions/deletions) and reviews in parallel per PR.
+  // The list endpoint omits additions/deletions — individual endpoint includes them.
   const prsWithReviews = await Promise.all(
     ghPRs.map(async (pr) => {
-      const reviewsRes = await fetch(
-        `${GH_API}/repos/${effectiveOwner}/${effectiveRepo}/pulls/${pr.number}/reviews`,
-        { headers, cache: "no-store" },
-      );
+      const [detailRes, reviewsRes] = await Promise.all([
+        fetch(`${GH_API}/repos/${effectiveOwner}/${effectiveRepo}/pulls/${pr.number}`, { headers, cache: "no-store" }),
+        fetch(`${GH_API}/repos/${effectiveOwner}/${effectiveRepo}/pulls/${pr.number}/reviews`, { headers, cache: "no-store" }),
+      ]);
+      const detail = detailRes.ok ? await detailRes.json() : pr;
       const reviews = reviewsRes.ok ? await reviewsRes.json() : [];
-      return transformGitHubPR(pr, reviews);
+      return transformGitHubPR(detail, reviews);
     }),
   );
 
