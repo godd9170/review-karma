@@ -1105,6 +1105,18 @@ function KarmaFilterPanel({
   const reviewingCount = (name) =>
     MOCK_PRS.filter((pr) => pr.reviewers.some((r) => r.name === name)).length;
 
+  // Action-required counts
+  const pendingReviewCount = (name) =>
+    MOCK_PRS.filter((pr) =>
+      pr.reviewers.some((r) => r.name === name && r.status === "pending"),
+    ).length;
+  const changesRequestedCount = (name) =>
+    MOCK_PRS.filter(
+      (pr) =>
+        pr.author.name === name &&
+        pr.reviewers.some((r) => r.status === "changes_requested"),
+    ).length;
+
   return (
     <div
       style={{
@@ -1297,6 +1309,55 @@ function KarmaFilterPanel({
                 >
                   {net > 0 ? `+${net}h` : `${net}h`}
                 </span>
+              )}
+
+              {/* Action-required badges */}
+              {(pendingReviewCount(person.name) > 0 ||
+                changesRequestedCount(person.name) > 0) && (
+                <div style={{ display: "flex", gap: 4 }}>
+                  {pendingReviewCount(person.name) > 0 && (
+                    <span
+                      title={`${person.name.split(" ")[0]} has ${pendingReviewCount(person.name)} pending review(s) to complete`}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 3,
+                        background: "#2d2200",
+                        border: "1px solid #facc1566",
+                        borderRadius: 5,
+                        padding: "3px 6px",
+                        fontSize: 8,
+                        color: "#facc15",
+                        fontFamily: "'DM Mono', monospace",
+                        fontWeight: 700,
+                        letterSpacing: "0.05em",
+                      }}
+                    >
+                      ⏳ {pendingReviewCount(person.name)}
+                    </span>
+                  )}
+                  {changesRequestedCount(person.name) > 0 && (
+                    <span
+                      title={`${person.name.split(" ")[0]} has ${changesRequestedCount(person.name)} PR(s) awaiting their revisions`}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 3,
+                        background: "#2c1200",
+                        border: "1px solid #fb923c66",
+                        borderRadius: 5,
+                        padding: "3px 6px",
+                        fontSize: 8,
+                        color: "#fb923c",
+                        fontFamily: "'DM Mono', monospace",
+                        fontWeight: 700,
+                        letterSpacing: "0.05em",
+                      }}
+                    >
+                      🔁 {changesRequestedCount(person.name)}
+                    </span>
+                  )}
+                </div>
               )}
 
               {/* Count badges — these are the clickable filters */}
