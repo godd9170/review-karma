@@ -1,9 +1,6 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-
-const SERVER_OWNER = process.env.NEXT_PUBLIC_GITHUB_OWNER;
-const SERVER_REPO = process.env.NEXT_PUBLIC_GITHUB_REPO;
 import { MOCK_PRS } from "@/lib/mockData";
 import { getStaleness, getAllPeople, computeKarma } from "@/lib/staleness";
 import PRCard from "@/components/PRCard";
@@ -30,17 +27,11 @@ export default function Page() {
   const [syncError, setSyncError] = useState(null);
   const [lastSynced, setLastSynced] = useState(null);
 
-  const fetchPRs = useCallback(async (config = {}) => {
+  const fetchPRs = useCallback(async () => {
     setSyncState("loading");
     setSyncError(null);
     try {
-      const owner = config.owner || SERVER_OWNER;
-      const repo = config.repo || SERVER_REPO;
-      const headers = config.pat ? { Authorization: `Bearer ${config.pat}` } : {};
-      const res = await fetch(
-        `/api/github/prs?owner=${encodeURIComponent(owner)}&repo=${encodeURIComponent(repo)}`,
-        { headers },
-      );
+      const res = await fetch("/api/github/prs");
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to fetch PRs");
       setPrs(data);
@@ -53,22 +44,7 @@ export default function Page() {
     }
   }, []);
 
-  const handleConnect = useCallback((config) => fetchPRs(config), [fetchPRs]);
-
-  // Auto-fetch on load when env vars are pre-configured server-side
-  useEffect(() => {
-    if (SERVER_OWNER && SERVER_REPO && !localStorage.getItem("review-karma-github-config")) {
-      fetchPRs();
-    }
-  }, [fetchPRs]);
-
-  const handleDisconnect = useCallback(() => {
-    setPrs(MOCK_PRS);
-    setUsingMockData(true);
-    setSyncState("idle");
-    setSyncError(null);
-    setLastSynced(null);
-  }, []);
+  useEffect(() => { fetchPRs(); }, [fetchPRs]);
 
   const toggle = (setFn, name) => {
     setFn((prev) => {
@@ -132,30 +108,17 @@ export default function Page() {
           </h1>
           <span style={{ fontSize: 10, color: "#334155", letterSpacing: "0.2em" }}>◆ PR QUEUE ◆</span>
           {usingMockData && (
-            <span
-              style={{
-                fontSize: 8,
-                color: "#334155",
-                letterSpacing: "0.1em",
-                border: "1px solid #1e293b",
-                borderRadius: 4,
-                padding: "2px 6px",
-                fontFamily: "'DM Mono', monospace",
-              }}
-            >
+            <span style={{ fontSize: 8, color: "#334155", letterSpacing: "0.1em", border: "1px solid #1e293b", borderRadius: 4, padding: "2px 6px", fontFamily: "'DM Mono', monospace" }}>
               DEMO DATA
             </span>
           )}
 
           <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 12 }}>
             <GitHubSync
-              onConnect={handleConnect}
-              onDisconnect={handleDisconnect}
-              onRefresh={() => fetchPRs()}
+              onRefresh={fetchPRs}
               syncState={syncState}
               syncError={syncError}
               lastSynced={lastSynced}
-              serverConfigured={!!(SERVER_OWNER && SERVER_REPO)}
             />
             <LiveClock />
           </div>
