@@ -35,7 +35,7 @@ export default function KarmaFilterPanel({
         </div>
       </div>
 
-      <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+      <div className="karma-grid">
         {karma.map(({ person, blocking, blocked }) => {
           const isAuthorActive = authorFilters.has(person.name);
           const isReviewerActive = reviewerFilters.has(person.name);

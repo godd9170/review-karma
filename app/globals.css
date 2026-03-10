@@ -27,3 +27,12 @@
   max-width: 1100px;
   margin: 0 auto;
 }
+
+.karma-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 10px;
+}
+@media (max-width: 1024px) { .karma-grid { grid-template-columns: repeat(4, 1fr); } }
+@media (max-width: 640px)  { .karma-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 420px)  { .karma-grid { grid-template-columns: repeat(2, 1fr); } }
