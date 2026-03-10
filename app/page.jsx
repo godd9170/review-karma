@@ -66,6 +66,7 @@ export default function Page() {
       const statusOk =
         !statusFilter ||
         (statusFilter === "pending" && pr.reviewers.some((r) => r.status === "pending")) ||
+        (statusFilter === "re_review" && pr.reviewers.some((r) => r.status === "re_review_needed")) ||
         (statusFilter === "approved" && pr.reviewers.every((r) => r.status === "approved")) ||
         (statusFilter === "changes" && pr.reviewers.some((r) => r.status === "changes_requested")) ||
         (statusFilter === "stale" && getStaleness(pr) >= 48);
@@ -175,6 +176,7 @@ export default function Page() {
         <span style={{ fontSize: 8, color: "#1e293b", letterSpacing: "0.2em" }}>
           REVIEWER RINGS: <span style={{ color: "#4ade80" }}>● APPROVED</span>{" "}
           <span style={{ color: "#f87171" }}>● CHANGES</span>{" "}
+          <span style={{ color: "#818cf8" }}>● RE-REVIEW</span>{" "}
           <span style={{ color: "#475569" }}>● PENDING</span>
         </span>
         <span style={{ fontSize: 8, color: "#1e293b", letterSpacing: "0.2em" }}>

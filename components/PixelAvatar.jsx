@@ -24,6 +24,7 @@ export default function PixelAvatar({ person, size = 40, hoursWaiting = 0, frame
     ring === "approved" ? "#4ade80"
     : ring === "changes_requested" ? "#f87171"
     : ring === "pending" ? "#64748b"
+    : ring === "re_review_needed" ? "#818cf8"
     : null;
 
   const eyeY = hoursWaiting > 48 ? 18 : 17;
@@ -178,6 +179,11 @@ export default function PixelAvatar({ person, size = 40, hoursWaiting = 0, frame
       {ring === "changes_requested" && (
         <div style={{ position: "absolute", bottom: -1, right: -1, width: 13, height: 13, borderRadius: "50%", background: "#f87171", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 7, color: "#fff", fontWeight: 900, border: "1.5px solid #020c14" }}>
           ✗
+        </div>
+      )}
+      {ring === "re_review_needed" && (
+        <div style={{ position: "absolute", bottom: -1, right: -1, width: 13, height: 13, borderRadius: "50%", background: "#818cf8", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 8, color: "#fff", fontWeight: 900, border: "1.5px solid #020c14" }}>
+          ↺
         </div>
       )}
     </div>

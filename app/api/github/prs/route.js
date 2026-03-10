@@ -46,13 +46,18 @@ export async function GET(request) {
   // The list endpoint omits additions/deletions — individual endpoint includes them.
   const prsWithReviews = await Promise.all(
     ghPRs.map(async (pr) => {
-      const [detailRes, reviewsRes] = await Promise.all([
+      const [detailRes, reviewsRes, headCommitRes] = await Promise.all([
         fetch(`${GH_API}/repos/${effectiveOwner}/${effectiveRepo}/pulls/${pr.number}`, { headers, cache: "no-store" }),
         fetch(`${GH_API}/repos/${effectiveOwner}/${effectiveRepo}/pulls/${pr.number}/reviews`, { headers, cache: "no-store" }),
+        // git/commits/{sha} gives the exact committer date for the HEAD commit,
+        // used to detect whether the author pushed after a changes_requested review.
+        fetch(`${GH_API}/repos/${effectiveOwner}/${effectiveRepo}/git/commits/${pr.head.sha}`, { headers, cache: "no-store" }),
       ]);
       const detail = detailRes.ok ? await detailRes.json() : pr;
       const reviews = reviewsRes.ok ? await reviewsRes.json() : [];
-      return transformGitHubPR(detail, reviews);
+      const headCommit = headCommitRes.ok ? await headCommitRes.json() : null;
+      const latestCommitAt = headCommit?.committer?.date ?? null;
+      return transformGitHubPR(detail, reviews, latestCommitAt);
     }),
   );
 

@@ -42,6 +42,9 @@ function getStatusInfo(pr) {
   if (pr.reviewers.every((r) => r.status === "approved")) {
     return { text: "approved", emoji: "✅", color: "#4ade80", bg: "#4ade8014", border: "#4ade8033" };
   }
+  if (pr.reviewers.some((r) => r.status === "re_review_needed")) {
+    return { text: "awaiting re-review", emoji: "↺", color: "#818cf8", bg: "#818cf814", border: "#818cf833" };
+  }
   if (pr.reviewers.some((r) => r.status === "changes_requested") && pr.reviewers.every((r) => r.status !== "pending")) {
     return { text: "changes needed", emoji: "🔁", color: "#fb923c", bg: "#fb923c14", border: "#fb923c33" };
   }
@@ -125,12 +128,15 @@ export default function PRCard({ pr, index }) {
         </div>
 
         <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6, minWidth: 0 }}>
-          {/* Title — link if we have a GitHub URL */}
+          {/* Title — clickable if we have a GitHub URL */}
           <div style={{ display: "flex", alignItems: "flex-start", gap: 6 }}>
             {pr.url ? (
-              <a href={pr.url} target="_blank" rel="noopener noreferrer" style={{ flex: 1, minWidth: 0, textDecoration: "none" }}>
+              <div
+                onClick={() => window.open(pr.url, "_blank", "noopener,noreferrer")}
+                style={{ flex: 1, minWidth: 0, cursor: "pointer" }}
+              >
                 {titleContent}
-              </a>
+              </div>
             ) : (
               titleContent
             )}
