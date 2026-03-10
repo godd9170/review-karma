@@ -1,5 +1,8 @@
 import { transformGitHubPR } from "@/lib/github";
 
+// Never statically render or cache this route — data must be live.
+export const dynamic = "force-dynamic";
+
 const GH_API = "https://api.github.com";
 
 export async function GET(request) {
@@ -61,5 +64,7 @@ export async function GET(request) {
     }),
   );
 
-  return Response.json(prsWithReviews);
+  return Response.json(prsWithReviews, {
+    headers: { "Cache-Control": "no-store" },
+  });
 }
