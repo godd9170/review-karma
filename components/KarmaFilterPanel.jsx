@@ -24,13 +24,10 @@ export default function KarmaFilterPanel({
           ◆ TEAM KARMA
         </span>
         <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-          <span style={{ fontSize: 7, color: "#1e293b", fontFamily: "'DM Mono', monospace" }}>
-            ✏️ authored · 👁 reviewing
-          </span>
           {hasFilters && (
             <button
               onClick={onClear}
-              style={{ background: "none", border: "1px solid #334155", borderRadius: 4, padding: "2px 8px", fontSize: 7, color: "#64748b", fontFamily: "'DM Mono', monospace", letterSpacing: "0.1em", cursor: "pointer" }}
+              style={{ background: "none", border: "1px solid #334155", borderRadius: 4, padding: "2px 8px", fontSize: 9, color: "#64748b", fontFamily: "'DM Mono', monospace", letterSpacing: "0.1em", cursor: "pointer" }}
             >
               ✕ clear
             </button>
@@ -43,8 +40,6 @@ export default function KarmaFilterPanel({
           const isAuthorActive = authorFilters.has(person.name);
           const isReviewerActive = reviewerFilters.has(person.name);
           const isActive = isAuthorActive || isReviewerActive;
-          const net = blocked - blocking;
-          const netColor = net < -20 ? "#f87171" : net > 20 ? "#facc15" : "#94a3b8";
           const isDevil = blocking > 0 && blocking >= blocked;
           const isAngel = blocked > 0 && blocked > blocking;
           const authored = authoredCount(person.name);
@@ -57,13 +52,14 @@ export default function KarmaFilterPanel({
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
-                gap: 5,
-                background: isActive ? `hsl(${person.hue}, 30%, 10%)` : "transparent",
-                border: `1px solid ${isActive ? `hsl(${person.hue}, 60%, 30%)` : "#1e293b"}`,
-                borderRadius: 10,
-                padding: "10px 10px 8px",
-                minWidth: 76,
+                gap: 6,
+                background: isActive ? `hsl(${person.hue}, 30%, 9%)` : "#0d1929",
+                border: `1px solid ${isActive ? `hsl(${person.hue}, 55%, 28%)` : "#1e293b"}`,
+                borderRadius: 12,
+                padding: "12px 10px 10px",
+                minWidth: 96,
                 transition: "all 0.15s ease",
+                boxShadow: isActive ? `0 0 16px hsl(${person.hue},50%,20%)44` : "none",
               }}
             >
               {/* Avatar with halo or horns */}
@@ -83,16 +79,16 @@ export default function KarmaFilterPanel({
               </div>
 
               {/* Name */}
-              <span style={{ fontSize: 7, fontFamily: "'DM Mono', monospace", color: `hsl(${person.hue}, 65%, 62%)`, textAlign: "center", lineHeight: 1.2 }}>
+              <span style={{ fontSize: 12, fontWeight: 700, fontFamily: "'DM Mono', monospace", color: `hsl(${person.hue}, 65%, 68%)`, textAlign: "center", lineHeight: 1.2 }}>
                 {person.name.split(" ")[0]}
               </span>
 
-              {/* Karma breakdown: blocking hours / blocked hours */}
+              {/* Karma breakdown */}
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
                 {blocking > 0 && (
                   <span
                     title={`${blocking}h sitting on pending reviews (holding others up)`}
-                    style={{ fontSize: 10, color: "#f87171bb", fontFamily: "'DM Mono', monospace" }}
+                    style={{ fontSize: 10, color: "#f87171cc", fontFamily: "'DM Mono', monospace" }}
                   >
                     ⏳ −{blocking}h
                   </span>
@@ -100,7 +96,7 @@ export default function KarmaFilterPanel({
                 {blocked > 0 && (
                   <span
                     title={`${blocked}h waiting on reviewers (being held up)`}
-                    style={{ fontSize: 10, color: "#facc15bb", fontFamily: "'DM Mono', monospace" }}
+                    style={{ fontSize: 10, color: "#facc15cc", fontFamily: "'DM Mono', monospace" }}
                   >
                     🕐 +{blocked}h
                   </span>
@@ -108,41 +104,35 @@ export default function KarmaFilterPanel({
               </div>
 
               {/* Filter buttons */}
-              <div style={{ display: "flex", gap: 4 }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 4, width: "100%" }}>
                 <button
                   onClick={() => onToggleAuthor(person.name)}
-                  title={`Show PRs authored by ${person.name}`}
+                  title={`Filter to PRs authored by ${person.name}`}
                   style={{
-                    display: "flex", alignItems: "center", gap: 3,
-                    background: isAuthorActive ? `hsl(${person.hue}, 45%, 18%)` : "#0f172a",
-                    border: `1px solid ${isAuthorActive ? `hsl(${person.hue}, 60%, 40%)` : "#1e293b"}`,
-                    borderRadius: 5, padding: "3px 6px", cursor: "pointer",
-                    boxShadow: isAuthorActive ? `0 0 8px hsl(${person.hue},60%,30%)55` : "none",
+                    display: "flex", alignItems: "center", justifyContent: "space-between",
+                    background: isAuthorActive ? `hsl(${person.hue}, 45%, 16%)` : "#080f1a",
+                    border: `1px solid ${isAuthorActive ? `hsl(${person.hue}, 55%, 32%)` : "#1e293b"}`,
+                    borderRadius: 6, padding: "5px 8px", cursor: "pointer",
                     transition: "all 0.12s ease",
                   }}
                 >
-                  <span style={{ fontSize: 9 }}>✏️</span>
-                  <span style={{ fontSize: 9, fontWeight: 700, lineHeight: 1, color: isAuthorActive ? `hsl(${person.hue}, 80%, 65%)` : "#475569", fontFamily: "'DM Mono', monospace" }}>
-                    {authored}
-                  </span>
+                  <span style={{ fontSize: 9, color: isAuthorActive ? `hsl(${person.hue}, 65%, 62%)` : "#475569", fontFamily: "'DM Mono', monospace" }}>✏ author</span>
+                  <span style={{ fontSize: 12, fontWeight: 800, color: isAuthorActive ? `hsl(${person.hue}, 80%, 70%)` : "#64748b", fontFamily: "'DM Mono', monospace", lineHeight: 1 }}>{authored}</span>
                 </button>
 
                 <button
                   onClick={() => onToggleReviewer(person.name)}
-                  title={`Show PRs where ${person.name} is a reviewer`}
+                  title={`Filter to PRs where ${person.name} is a reviewer`}
                   style={{
-                    display: "flex", alignItems: "center", gap: 3,
-                    background: isReviewerActive ? `hsl(${person.hue}, 45%, 18%)` : "#0f172a",
-                    border: `1px solid ${isReviewerActive ? `hsl(${person.hue}, 60%, 40%)` : "#1e293b"}`,
-                    borderRadius: 5, padding: "3px 6px", cursor: "pointer",
-                    boxShadow: isReviewerActive ? `0 0 8px hsl(${person.hue},60%,30%)55` : "none",
+                    display: "flex", alignItems: "center", justifyContent: "space-between",
+                    background: isReviewerActive ? `hsl(${person.hue}, 45%, 16%)` : "#080f1a",
+                    border: `1px solid ${isReviewerActive ? `hsl(${person.hue}, 55%, 32%)` : "#1e293b"}`,
+                    borderRadius: 6, padding: "5px 8px", cursor: "pointer",
                     transition: "all 0.12s ease",
                   }}
                 >
-                  <span style={{ fontSize: 9 }}>👁</span>
-                  <span style={{ fontSize: 9, fontWeight: 700, lineHeight: 1, color: isReviewerActive ? `hsl(${person.hue}, 80%, 65%)` : "#475569", fontFamily: "'DM Mono', monospace" }}>
-                    {reviewing}
-                  </span>
+                  <span style={{ fontSize: 9, color: isReviewerActive ? `hsl(${person.hue}, 65%, 62%)` : "#475569", fontFamily: "'DM Mono', monospace" }}>👁 review</span>
+                  <span style={{ fontSize: 12, fontWeight: 800, color: isReviewerActive ? `hsl(${person.hue}, 80%, 70%)` : "#64748b", fontFamily: "'DM Mono', monospace", lineHeight: 1 }}>{reviewing}</span>
                 </button>
               </div>
             </div>
