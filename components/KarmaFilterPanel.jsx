@@ -1,6 +1,7 @@
 "use client";
 
 import PixelAvatar from "./PixelAvatar";
+import { formatWait } from "@/lib/formatters";
 
 export default function KarmaFilterPanel({
   allPeople,
@@ -85,22 +86,18 @@ export default function KarmaFilterPanel({
 
               {/* Karma breakdown */}
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
-                {blocking > 0 && (
-                  <span
-                    title={`${blocking}h sitting on pending reviews (holding others up)`}
-                    style={{ fontSize: 10, color: "#f87171cc", fontFamily: "'DM Mono', monospace" }}
-                  >
-                    ⏳ −{blocking}h
-                  </span>
-                )}
-                {blocked > 0 && (
-                  <span
-                    title={`${blocked}h waiting on reviewers (being held up)`}
-                    style={{ fontSize: 10, color: "#facc15cc", fontFamily: "'DM Mono', monospace" }}
-                  >
-                    🕐 +{blocked}h
-                  </span>
-                )}
+                <span
+                  title={`${blocking}h sitting on pending reviews (holding others up)`}
+                  style={{ fontSize: 10, color: blocking > 0 ? "#f87171cc" : "#334155", fontFamily: "'DM Mono', monospace" }}
+                >
+                  ⏳ {formatWait(blocking)}
+                </span>
+                <span
+                  title={`${blocked}h waiting on reviewers (being held up)`}
+                  style={{ fontSize: 10, color: blocked > 0 ? "#facc15cc" : "#334155", fontFamily: "'DM Mono', monospace" }}
+                >
+                  🕐 {formatWait(blocked)}
+                </span>
               </div>
 
               {/* Filter buttons */}
