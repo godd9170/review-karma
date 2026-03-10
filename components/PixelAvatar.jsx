@@ -3,11 +3,20 @@
 import { getTraits } from "@/lib/avatarTraits";
 
 const hairPaths = [
+  // 0: side-swept
   `M 8 11 Q 16 4 24 11 L 24 14 Q 16 7 8 14 Z`,
+  // 1: medium round
   `M 7 13 Q 10 4 16 5 Q 22 4 25 13 L 25 16 Q 22 8 16 9 Q 10 8 7 16 Z`,
+  // 2: long (rendered behind face separately)
   `M 7 13 Q 10 3 16 4 Q 22 3 25 13 L 26 27 Q 24 20 24 14 Q 16 8 8 14 L 6 27 Q 6 20 7 13 Z`,
+  // 3: short crown
   `M 9 14 Q 7 7 12 6 Q 14 3 16 4 Q 18 3 20 6 Q 25 7 23 14 Q 20 8 16 7 Q 12 8 9 14 Z`,
+  // 4: side part with flip
   `M 7 14 Q 9 4 18 5 Q 24 5 25 13 L 25 16 Q 20 7 14 8 Q 9 9 8 16 Z M 7 14 L 5 19 Q 6 15 8 16 Z`,
+  // 5: spiky top
+  `M 9 14 L 10 7 L 12 11 L 13 5 L 15 10 L 16 4 L 17 10 L 19 5 L 21 11 L 23 7 L 23 14 Q 20 8 16 8 Q 12 8 9 14 Z`,
+  // 6: bun / updo
+  `M 9 14 Q 7 8 12 6 Q 14 3 16 4 Q 18 3 20 6 Q 25 8 23 14 Q 20 9 16 9 Q 12 9 9 14 Z M 14 4 Q 16 1 18 4 Q 16 6 14 4 Z`,
 ];
 
 export default function PixelAvatar({ person, size = 40, hoursWaiting = 0, frame = 0, ring = null }) {

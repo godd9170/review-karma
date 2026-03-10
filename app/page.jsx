@@ -42,7 +42,11 @@ export default function Page() {
     }
   }, []);
 
-  useEffect(() => { fetchPRs(); }, [fetchPRs]);
+  useEffect(() => {
+    fetchPRs();
+    const interval = setInterval(fetchPRs, 3 * 60 * 1000); // re-poll every 3 minutes
+    return () => clearInterval(interval);
+  }, [fetchPRs]);
 
   const toggle = (setFn, name) => {
     setFn((prev) => {
