@@ -87,12 +87,25 @@ export default function KarmaFilterPanel({
                 {person.name.split(" ")[0]}
               </span>
 
-              {/* Net karma badge */}
-              {(blocking > 0 || blocked > 0) && (
-                <span style={{ fontSize: 7, color: netColor, fontFamily: "'DM Mono', monospace", border: `1px solid ${netColor}33`, borderRadius: 3, padding: "1px 4px" }}>
-                  {net > 0 ? `+${net}h` : `${net}h`}
-                </span>
-              )}
+              {/* Karma breakdown: blocking hours / blocked hours */}
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+                {blocking > 0 && (
+                  <span
+                    title={`${blocking}h sitting on pending reviews (holding others up)`}
+                    style={{ fontSize: 10, color: "#f87171bb", fontFamily: "'DM Mono', monospace" }}
+                  >
+                    ⏳ −{blocking}h
+                  </span>
+                )}
+                {blocked > 0 && (
+                  <span
+                    title={`${blocked}h waiting on reviewers (being held up)`}
+                    style={{ fontSize: 10, color: "#facc15bb", fontFamily: "'DM Mono', monospace" }}
+                  >
+                    🕐 +{blocked}h
+                  </span>
+                )}
+              </div>
 
               {/* Filter buttons */}
               <div style={{ display: "flex", gap: 4 }}>
