@@ -122,6 +122,6 @@ npm run start
 
 ## Notes for developers
 
-- No dedicated test suite is currently configured.
+- This repository currently has no dedicated test suite configured.
 - Styling is primarily inline with shared animations in `app/globals.css`.
 - Fonts are loaded from Google Fonts (`DM Mono`, `Silkscreen`).
