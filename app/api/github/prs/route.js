@@ -1,7 +1,10 @@
 import { transformGitHubPR } from "@/lib/github";
 
-// Never statically render or cache this route — data must be live.
-export const dynamic = "force-dynamic";
+// Cache the route output server-side and revalidate in the background.
+// All concurrent users share one cached response — GitHub is only called
+// once per revalidation window regardless of how many tabs are open.
+// CACHE_TTL_SECONDS defaults to 60; set it in env to tune.
+export const revalidate = parseInt(process.env.CACHE_TTL_SECONDS ?? "60", 10);
 
 const GH_API = "https://api.github.com";
 
@@ -65,6 +68,10 @@ export async function GET(request) {
   );
 
   return Response.json(prsWithReviews, {
-    headers: { "Cache-Control": "no-store" },
+    headers: {
+      // Tell Vercel's CDN to cache at the edge and serve stale while revalidating.
+      // This means zero GitHub calls for concurrent users hitting the same edge node.
+      "Cache-Control": `public, s-maxage=${revalidate}, stale-while-revalidate=${revalidate * 2}`,
+    },
   });
 }

@@ -46,7 +46,7 @@ export default function Page() {
 
   useEffect(() => {
     fetchPRs();
-    const interval = setInterval(fetchPRs, 3 * 60 * 1000); // re-poll every 3 minutes
+    const interval = setInterval(fetchPRs, 5 * 60 * 1000); // re-poll every 5 minutes
     return () => clearInterval(interval);
   }, [fetchPRs]);
 
