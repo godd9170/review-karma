@@ -1,8 +1,8 @@
 import { transformGraphQLPR } from "@/lib/github";
 
 // Cache the route output server-side; all users share one GitHub fetch per window.
-// CACHE_TTL_SECONDS defaults to 60; tune in env if needed.
-export const revalidate = parseInt(process.env.CACHE_TTL_SECONDS ?? "60", 10);
+// Must be a static literal — Next.js reads segment config at build time.
+export const revalidate = 60;
 
 // Single GraphQL query replaces 1 + (N × 3) REST calls with 1 call total.
 // With 50 open PRs the old approach used ~151 API calls per revalidation;
@@ -84,7 +84,7 @@ export async function GET(request) {
 
   return Response.json(prs, {
     headers: {
-      "Cache-Control": `public, s-maxage=${revalidate}, stale-while-revalidate=${revalidate * 2}`,
+      "Cache-Control": "public, s-maxage=60, stale-while-revalidate=120",
     },
   });
 }
