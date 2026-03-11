@@ -1,15 +1,12 @@
 import { transformGraphQLPR } from "@/lib/github";
 
-// Cache the route output server-side; all users share one GitHub fetch per window.
-// Must be a static literal — Next.js reads segment config at build time.
-export const revalidate = 60;
+// Single GraphQL call per revalidation vs ~151 REST calls.
+// At 120s TTL: 30 revalidations/hr × 1 = 30 calls/hr — well within GitHub's 5,000/hr limit.
+export const revalidate = 120;
 
-// Single GraphQL query replaces 1 + (N × 3) REST calls with 1 call total.
-// With 50 open PRs the old approach used ~151 API calls per revalidation;
-// this uses 1, keeping us well inside GitHub's 5000 req/hr limit.
 const QUERY = `
-  query OpenPRs($owner: String!, $repo: String!) {
-    repository(owner: $owner, name: $repo) {
+  query($owner: String!, $name: String!) {
+    repository(owner: $owner, name: $name) {
       pullRequests(states: OPEN, first: 100) {
         nodes {
           number
@@ -30,10 +27,11 @@ const QUERY = `
             nodes {
               requestedReviewer {
                 ... on User { login }
+                ... on Team { slug }
               }
             }
           }
-          reviews(first: 100, states: [APPROVED, CHANGES_REQUESTED, DISMISSED]) {
+          reviews(first: 100) {
             nodes {
               author { login }
               state
@@ -65,7 +63,7 @@ export async function GET(request) {
       "Content-Type": "application/json",
       "X-GitHub-Api-Version": "2022-11-28",
     },
-    body: JSON.stringify({ query: QUERY, variables: { owner, repo } }),
+    body: JSON.stringify({ query: QUERY, variables: { owner, name: repo } }),
     cache: "no-store",
   });
 
@@ -79,11 +77,9 @@ export async function GET(request) {
     return Response.json({ error: errors[0].message }, { status: 500 });
   }
 
-  const prs = (data.repository.pullRequests.nodes || []).map(transformGraphQLPR);
+  const prs = (data?.repository?.pullRequests?.nodes || []).map(transformGraphQLPR);
 
   return Response.json(prs, {
-    headers: {
-      "Cache-Control": "public, s-maxage=60, stale-while-revalidate=120",
-    },
+    headers: { "Cache-Control": "public, s-maxage=120, stale-while-revalidate=240" },
   });
 }
