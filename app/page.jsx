@@ -20,7 +20,9 @@ function LiveClock() {
 export default function Page() {
   const [prs, setPrs] = useState(null);
   const [authorFilters, setAuthorFilters] = useState(new Set());
+  const [authorActionFilters, setAuthorActionFilters] = useState(new Set());
   const [reviewerFilters, setReviewerFilters] = useState(new Set());
+  const [reviewerActionFilters, setReviewerActionFilters] = useState(new Set());
   const [statusFilter, setStatusFilter] = useState(null);
   const [syncState, setSyncState] = useState("idle");
   const [syncError, setSyncError] = useState(null);
@@ -48,12 +50,27 @@ export default function Page() {
     return () => clearInterval(interval);
   }, [fetchPRs]);
 
-  const toggle = (setFn, name) => {
-    setFn((prev) => {
-      const next = new Set(prev);
-      next.has(name) ? next.delete(name) : next.add(name);
-      return next;
-    });
+  // Each button cycles: off → all → action-required → off
+  const cycleAuthor = (name) => {
+    if (authorActionFilters.has(name)) {
+      setAuthorActionFilters((p) => { const n = new Set(p); n.delete(name); return n; });
+    } else if (authorFilters.has(name)) {
+      setAuthorFilters((p) => { const n = new Set(p); n.delete(name); return n; });
+      setAuthorActionFilters((p) => new Set([...p, name]));
+    } else {
+      setAuthorFilters((p) => new Set([...p, name]));
+    }
+  };
+
+  const cycleReviewer = (name) => {
+    if (reviewerActionFilters.has(name)) {
+      setReviewerActionFilters((p) => { const n = new Set(p); n.delete(name); return n; });
+    } else if (reviewerFilters.has(name)) {
+      setReviewerFilters((p) => { const n = new Set(p); n.delete(name); return n; });
+      setReviewerActionFilters((p) => new Set([...p, name]));
+    } else {
+      setReviewerFilters((p) => new Set([...p, name]));
+    }
   };
 
   if (prs === null) {
@@ -65,8 +82,21 @@ export default function Page() {
 
   const filteredPRs = prs
     .filter((pr) => {
-      const authorOk = authorFilters.size === 0 || authorFilters.has(pr.author.name);
-      const reviewerOk = reviewerFilters.size === 0 || pr.reviewers.some((r) => reviewerFilters.has(r.name));
+      const authorOk =
+        authorFilters.size === 0 && authorActionFilters.size === 0
+          ? true
+          : authorFilters.has(pr.author.name) ||
+            (authorActionFilters.has(pr.author.name) &&
+              pr.reviewers.some((r) => r.status === "changes_requested"));
+      const reviewerOk =
+        reviewerFilters.size === 0 && reviewerActionFilters.size === 0
+          ? true
+          : pr.reviewers.some((r) => reviewerFilters.has(r.name)) ||
+            pr.reviewers.some(
+              (r) =>
+                reviewerActionFilters.has(r.name) &&
+                (r.status === "pending" || r.status === "re_review_needed"),
+            );
       const statusOk =
         !statusFilter ||
         (statusFilter === "pending" && pr.reviewers.some((r) => r.status === "pending")) ||
@@ -78,11 +108,13 @@ export default function Page() {
     })
     .sort((a, b) => getStaleness(b) - getStaleness(a));
 
-  const hasFilters = authorFilters.size > 0 || reviewerFilters.size > 0 || statusFilter !== null;
+  const hasFilters = authorFilters.size > 0 || authorActionFilters.size > 0 || reviewerFilters.size > 0 || reviewerActionFilters.size > 0 || statusFilter !== null;
 
   const clearFilters = () => {
     setAuthorFilters(new Set());
+    setAuthorActionFilters(new Set());
     setReviewerFilters(new Set());
+    setReviewerActionFilters(new Set());
     setStatusFilter(null);
   };
 
@@ -133,9 +165,11 @@ export default function Page() {
           karma={karma}
           prs={prs}
           authorFilters={authorFilters}
+          authorActionFilters={authorActionFilters}
           reviewerFilters={reviewerFilters}
-          onToggleAuthor={(name) => toggle(setAuthorFilters, name)}
-          onToggleReviewer={(name) => toggle(setReviewerFilters, name)}
+          reviewerActionFilters={reviewerActionFilters}
+          onCycleAuthor={cycleAuthor}
+          onCycleReviewer={cycleReviewer}
           onClear={clearFilters}
           hasFilters={hasFilters}
         />

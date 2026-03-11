@@ -8,9 +8,11 @@ export default function KarmaFilterPanel({
   karma,
   prs,
   authorFilters,
+  authorActionFilters,
   reviewerFilters,
-  onToggleAuthor,
-  onToggleReviewer,
+  reviewerActionFilters,
+  onCycleAuthor,
+  onCycleReviewer,
   onClear,
   hasFilters,
 }) {
@@ -38,13 +40,26 @@ export default function KarmaFilterPanel({
 
       <div className="karma-grid">
         {karma.map(({ person, blocking, blocked }) => {
-          const isAuthorActive = authorFilters.has(person.name);
-          const isReviewerActive = reviewerFilters.has(person.name);
-          const isActive = isAuthorActive || isReviewerActive;
+          // 0 = off, 1 = all, 2 = action-required only
+          const authorStage = authorActionFilters.has(person.name) ? 2 : authorFilters.has(person.name) ? 1 : 0;
+          const reviewerStage = reviewerActionFilters.has(person.name) ? 2 : reviewerFilters.has(person.name) ? 1 : 0;
+          const isActive = authorStage > 0 || reviewerStage > 0;
           const isDevil = blocking > 0 && blocking >= blocked;
           const isAngel = blocked > 0 && blocked > blocking;
           const authored = authoredCount(person.name);
           const reviewing = reviewingCount(person.name);
+
+          const authorBg    = authorStage === 2 ? "#2d1502" : authorStage === 1 ? `hsl(${person.hue}, 45%, 16%)` : "#080f1a";
+          const authorBorder = authorStage === 2 ? "#fb923c88" : authorStage === 1 ? `hsl(${person.hue}, 55%, 32%)` : "#1e293b";
+          const authorLabel  = authorStage === 2 ? "⚡ action" : "✏ author";
+          const authorColor  = authorStage === 2 ? "#fb923c" : authorStage === 1 ? `hsl(${person.hue}, 65%, 62%)` : "#475569";
+          const authorCount  = authorStage === 2 ? "#fb923c" : authorStage === 1 ? `hsl(${person.hue}, 80%, 70%)` : "#64748b";
+
+          const reviewBg    = reviewerStage === 2 ? "#1a0a2e" : reviewerStage === 1 ? `hsl(${person.hue}, 45%, 16%)` : "#080f1a";
+          const reviewBorder = reviewerStage === 2 ? "#818cf888" : reviewerStage === 1 ? `hsl(${person.hue}, 55%, 32%)` : "#1e293b";
+          const reviewLabel  = reviewerStage === 2 ? "⚡ action" : "👁 review";
+          const reviewColor  = reviewerStage === 2 ? "#818cf8" : reviewerStage === 1 ? `hsl(${person.hue}, 65%, 62%)` : "#475569";
+          const reviewCount  = reviewerStage === 2 ? "#818cf8" : reviewerStage === 1 ? `hsl(${person.hue}, 80%, 70%)` : "#64748b";
 
           return (
             <div
@@ -100,36 +115,24 @@ export default function KarmaFilterPanel({
                 </span>
               </div>
 
-              {/* Filter buttons */}
+              {/* Filter buttons — click to cycle: off → all → action required → off */}
               <div style={{ display: "flex", flexDirection: "column", gap: 4, width: "100%" }}>
                 <button
-                  onClick={() => onToggleAuthor(person.name)}
-                  title={`Filter to PRs authored by ${person.name}`}
-                  style={{
-                    display: "flex", alignItems: "center", justifyContent: "space-between",
-                    background: isAuthorActive ? `hsl(${person.hue}, 45%, 16%)` : "#080f1a",
-                    border: `1px solid ${isAuthorActive ? `hsl(${person.hue}, 55%, 32%)` : "#1e293b"}`,
-                    borderRadius: 6, padding: "5px 8px", cursor: "pointer",
-                    transition: "all 0.12s ease",
-                  }}
+                  onClick={() => onCycleAuthor(person.name)}
+                  title={authorStage === 0 ? `Show all PRs authored by ${person.name}` : authorStage === 1 ? `Filter to PRs needing ${person.name.split(" ")[0]}'s input` : `Clear author filter`}
+                  style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: authorBg, border: `1px solid ${authorBorder}`, borderRadius: 6, padding: "5px 8px", cursor: "pointer", transition: "all 0.12s ease" }}
                 >
-                  <span style={{ fontSize: 9, color: isAuthorActive ? `hsl(${person.hue}, 65%, 62%)` : "#475569", fontFamily: "'DM Mono', monospace" }}>✏ author</span>
-                  <span style={{ fontSize: 12, fontWeight: 800, color: isAuthorActive ? `hsl(${person.hue}, 80%, 70%)` : "#64748b", fontFamily: "'DM Mono', monospace", lineHeight: 1 }}>{authored}</span>
+                  <span style={{ fontSize: 9, color: authorColor, fontFamily: "'DM Mono', monospace" }}>{authorLabel}</span>
+                  <span style={{ fontSize: 12, fontWeight: 800, color: authorCount, fontFamily: "'DM Mono', monospace", lineHeight: 1 }}>{authored}</span>
                 </button>
 
                 <button
-                  onClick={() => onToggleReviewer(person.name)}
-                  title={`Filter to PRs where ${person.name} is a reviewer`}
-                  style={{
-                    display: "flex", alignItems: "center", justifyContent: "space-between",
-                    background: isReviewerActive ? `hsl(${person.hue}, 45%, 16%)` : "#080f1a",
-                    border: `1px solid ${isReviewerActive ? `hsl(${person.hue}, 55%, 32%)` : "#1e293b"}`,
-                    borderRadius: 6, padding: "5px 8px", cursor: "pointer",
-                    transition: "all 0.12s ease",
-                  }}
+                  onClick={() => onCycleReviewer(person.name)}
+                  title={reviewerStage === 0 ? `Show all PRs where ${person.name} is a reviewer` : reviewerStage === 1 ? `Filter to PRs requiring ${person.name.split(" ")[0]}'s review` : `Clear reviewer filter`}
+                  style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: reviewBg, border: `1px solid ${reviewBorder}`, borderRadius: 6, padding: "5px 8px", cursor: "pointer", transition: "all 0.12s ease" }}
                 >
-                  <span style={{ fontSize: 9, color: isReviewerActive ? `hsl(${person.hue}, 65%, 62%)` : "#475569", fontFamily: "'DM Mono', monospace" }}>👁 review</span>
-                  <span style={{ fontSize: 12, fontWeight: 800, color: isReviewerActive ? `hsl(${person.hue}, 80%, 70%)` : "#64748b", fontFamily: "'DM Mono', monospace", lineHeight: 1 }}>{reviewing}</span>
+                  <span style={{ fontSize: 9, color: reviewColor, fontFamily: "'DM Mono', monospace" }}>{reviewLabel}</span>
+                  <span style={{ fontSize: 12, fontWeight: 800, color: reviewCount, fontFamily: "'DM Mono', monospace", lineHeight: 1 }}>{reviewing}</span>
                 </button>
               </div>
             </div>
