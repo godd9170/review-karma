@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { getStaleness, getAllPeople, computeKarma } from "@/lib/staleness";
+import { getAllPeople, computeKarma } from "@/lib/staleness";
 import PRCard from "@/components/PRCard";
 import KarmaFilterPanel from "@/components/KarmaFilterPanel";
 import StatusChips from "@/components/StatusChips";
@@ -103,10 +103,10 @@ export default function Page() {
         (statusFilter === "re_review" && pr.reviewers.some((r) => r.status === "re_review_needed")) ||
         (statusFilter === "approved" && pr.reviewers.every((r) => r.status === "approved")) ||
         (statusFilter === "changes" && pr.reviewers.some((r) => r.status === "changes_requested")) ||
-        (statusFilter === "stale" && getStaleness(pr) >= 48);
+        (statusFilter === "stale" && pr.idleHours >= 48);
       return authorOk && reviewerOk && statusOk;
     })
-    .sort((a, b) => getStaleness(b) - getStaleness(a));
+    .sort((a, b) => b.idleHours - a.idleHours);
 
   const hasFilters = authorFilters.size > 0 || authorActionFilters.size > 0 || reviewerFilters.size > 0 || reviewerActionFilters.size > 0 || statusFilter !== null;
 

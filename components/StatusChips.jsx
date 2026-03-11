@@ -1,6 +1,5 @@
 "use client";
 
-import { getStaleness } from "@/lib/staleness";
 
 const CHIPS = [
   { key: null, label: "ALL", color: "#94a3b8", filter: () => true },
@@ -8,7 +7,7 @@ const CHIPS = [
   { key: "re_review", label: "AWAITING RE-REVIEW", color: "#818cf8", filter: (pr) => pr.reviewers.some((r) => r.status === "re_review_needed") },
   { key: "approved", label: "APPROVED", color: "#4ade80", filter: (pr) => pr.reviewers.every((r) => r.status === "approved") },
   { key: "changes", label: "NEEDS CHANGES", color: "#f87171", filter: (pr) => pr.reviewers.some((r) => r.status === "changes_requested") },
-  { key: "stale", label: "STALE 48h+", color: "#fb923c", filter: (pr) => getStaleness(pr) >= 48 },
+  { key: "stale", label: "STALE 48h+", color: "#fb923c", filter: (pr) => pr.idleHours >= 48 },
 ];
 
 export default function StatusChips({ prs, statusFilter, onSetFilter }) {

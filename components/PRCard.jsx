@@ -55,10 +55,11 @@ function getStatusInfo(pr) {
 }
 
 export default function PRCard({ pr, index }) {
-  const staleness = getStaleness(pr);
-  const moodColor = getMoodColor(staleness);
-  const cardBg = getCardBg(staleness);
-  const anim = getAnimClass(staleness);
+  const staleness = getStaleness(pr); // responsibility clock — used for karma
+  const idle = pr.idleHours;          // general idle time — used for display & mood
+  const moodColor = getMoodColor(idle);
+  const cardBg = getCardBg(idle);
+  const anim = getAnimClass(idle);
   const statusInfo = getStatusInfo(pr);
 
   const [frame, setFrame] = useState(0);
@@ -121,7 +122,7 @@ export default function PRCard({ pr, index }) {
       {/* Top row: author avatar + title + diff */}
       <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3, flexShrink: 0 }}>
-          <PixelAvatar person={pr.author} size={50} hoursWaiting={staleness} frame={frame} />
+          <PixelAvatar person={pr.author} size={50} hoursWaiting={idle} frame={frame} />
           <span style={{ fontSize: 7, color: `hsl(${pr.author.hue}, 70%, 60%)`, fontFamily: "'DM Mono', monospace", maxWidth: 50, textAlign: "center", lineHeight: 1.2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
             {pr.author.name.split(" ")[0]}
           </span>
@@ -157,7 +158,7 @@ export default function PRCard({ pr, index }) {
           <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 4, background: `${moodColor}14`, border: `1px solid ${moodColor}33`, borderRadius: 5, padding: "3px 7px" }}>
               <span style={{ fontSize: 8, color: moodColor, opacity: 0.7, letterSpacing: "0.05em", fontFamily: "'DM Mono', monospace" }}>idle</span>
-              <span style={{ fontSize: 11, fontWeight: 800, color: moodColor, fontFamily: "'DM Mono', monospace", lineHeight: 1 }}>{formatWait(staleness)}</span>
+              <span style={{ fontSize: 11, fontWeight: 800, color: moodColor, fontFamily: "'DM Mono', monospace", lineHeight: 1 }}>{formatWait(idle)}</span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 4, background: "#0f172a", border: "1px solid #1e293b", borderRadius: 5, padding: "3px 7px" }}>
               <span style={{ fontSize: 8, color: "#475569", letterSpacing: "0.05em", fontFamily: "'DM Mono', monospace" }}>opened</span>
