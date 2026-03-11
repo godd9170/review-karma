@@ -20,8 +20,7 @@ const QUERY = `
           additions
           deletions
           author { login }
-          comments      { totalCount }
-          reviewComments { totalCount }
+          comments { totalCount }
           headRef {
             target {
               ... on Commit { committedDate }
