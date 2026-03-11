@@ -26,7 +26,12 @@ This is a standard Next.js App Router project. Key files:
 
 ### Key concepts
 
-**Staleness** (`getStaleness`): `lastActivityHours` — hours since the last meaningful event (push, review, comment). This drives all mood/color/animation logic, not `openedHours`.
+**Staleness** (`getStaleness`): how long the ball has been sitting with whoever currently needs to act. Depends on `getBlockedBy`:
+- Reviewers have the ball (`pending`/`re_review_needed`) → `lastPushHours` (since author's last commit)
+- Author has the ball (`changes_requested`) → `lastChangesRequestedHours` (since reviewer's last CR)
+- Ready to merge → `lastPushHours`
+
+`updated_at` is intentionally NOT used — it resets on any activity (comments, CI, other people's reviews) and would reward pending reviewers for their colleagues' work.
 
 **Karma** (`computeKarma` in `lib/staleness.js`):
 - `blocking` = sum of staleness of PRs where the person is a pending/re_review_needed reviewer
